@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulação PCP Estrutural</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<style>/* Mesma linguagem visual da ferramenta: neutros frios, cor só para dar sentido. */
+:root{--ink:#18181b;--ink2:#52525c;--ink3:#71717b;--line:#e4e4e7;--campo:#71717b;--soft:#f4f4f5;--bg:#fff;
+--av:#78350f;--avf:#fffbeb;--avb:#fcd34d;--er:#991b1b;--erf:#fef2f2;--erb:#fecaca;--ok:#14532d;--okf:#f0fdf4;--okb:#bbf7d0;--in:#0c4a6e;--inf:#f0f9ff;--inb:#bae6fd;
+--font:"Geist",ui-sans-serif,system-ui,sans-serif;color-scheme:light}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--font)}
+h1{font-size:20px;margin:0;font-weight:600;text-wrap:balance}h2{font-size:16px;margin:0;font-weight:600}
+button,input,select{font:inherit;color:inherit}table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th{text-align:left;font-weight:500;padding:8px;border-bottom:1px solid #d4d4d8;white-space:nowrap}td{padding:6px 8px;border-bottom:1px solid var(--soft);vertical-align:top}
+:focus-visible{outline:2px solid #0369a1;outline-offset:1px}
+.faixa{background:var(--avf);border-bottom:1px solid var(--avb);color:var(--av);padding:8px 16px;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+.topo{border-bottom:1px solid var(--line);padding:12px 16px;display:flex;flex-wrap:wrap;gap:8px 24px;align-items:center}
+.marca{font-weight:600}nav{display:flex;flex-wrap:wrap;gap:4px}
+main{padding:20px 16px 48px;max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.btn{border:1px solid var(--campo);background:#fff;border-radius:4px;padding:6px 12px;cursor:pointer}.btn:hover{background:var(--soft)}
+.btn.p,.btn[aria-pressed=true],.btn[aria-current=page]{background:var(--ink);border-color:var(--ink);color:#fff}.btn.p:hover{background:#3f3f46}
+.btn.mini{padding:2px 8px}.btn:disabled{opacity:.5;cursor:default}
+.link{background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+.linha{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.entre{justify-content:space-between}
+.caixa{border:1px solid var(--line);border-radius:4px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.sec{color:var(--ink2)}.peq{font-size:12px}.err{color:#b91c1c}.av{color:var(--av)}
+.n{border:1px solid;border-radius:4px;padding:8px 12px}.n.aviso{background:var(--avf);border-color:var(--avb);color:var(--av)}.n.erro{background:var(--erf);border-color:var(--erb);color:var(--er)}.n.sucesso{background:var(--okf);border-color:var(--okb);color:var(--ok)}.n.info{background:var(--inf);border-color:var(--inb);color:var(--in)}
+button.n{cursor:pointer;font:inherit}button.n[aria-expanded=true]{box-shadow:0 0 0 2px #18181b4d}
+.selo{border-radius:4px;padding:1px 6px;font-size:12px;display:inline-block;white-space:nowrap}.selo.aviso{background:#fef3c6;color:var(--av)}.selo.sucesso{background:#dcfce7;color:var(--ok)}.selo.info{background:#e0f2fe;color:var(--in)}
+.form{max-width:768px;display:flex;flex-direction:column;gap:16px}.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label.c{display:block;font-weight:500}.ctl{display:block;width:100%;margin-top:4px;border:1px solid var(--campo);border-radius:4px;padding:8px 10px;background:#fff;font-weight:400}
+.dia{width:64px;border:1px solid var(--campo);border-radius:4px;padding:4px 6px;text-align:right;background:#fff}
+fieldset{border:1px solid var(--line);border-radius:4px;padding:12px;margin:0;display:flex;flex-direction:column;gap:8px}legend{font-weight:500;padding:0 4px}
+.op{display:flex;gap:8px;align-items:flex-start}.maqs{display:flex;flex-wrap:wrap;gap:4px 14px}.maqs label{display:flex;gap:4px;align-items:center;white-space:nowrap}
+.rolar{overflow-x:auto}
+.grade{display:grid;gap:16px;grid-template-columns:minmax(0,1fr);align-items:start}@media(min-width:1040px){.grade{grid-template-columns:minmax(0,1fr) 290px}.painel{position:sticky;top:12px}}
+.g{font-size:12px}.g .of{display:block;white-space:nowrap;border-radius:3px;padding:0 4px;margin-bottom:2px}.g .of.sel{background:var(--inf);box-shadow:inset 0 0 0 1px var(--inb)}.g .of.apaga{opacity:.4}
+.of-b{background:none;border:0;padding:0;font-weight:500;text-decoration:underline dotted;text-underline-offset:2px;cursor:pointer}
+.ocu{height:4px;background:var(--soft);border-radius:2px;margin-top:4px}.ocu i{display:block;height:4px;border-radius:2px;background:var(--ink3)}
+.gantt span{display:block;height:6px;border-radius:2px;margin-bottom:2px}.CORTE{background:#0284c7}.USINAGEM{background:#7c3aed}.MONTAGEM{background:#f59e0b}.COLAGEM{background:#059669}.leg{display:inline-block;width:16px;height:8px;border-radius:2px;margin-right:4px}
+tr.sel td{background:var(--inf)}.painel{border:1px solid var(--inb);border-radius:4px;padding:16px;display:flex;flex-direction:column;gap:10px}.painel.vazio{border:1px dashed var(--line);color:var(--ink2)}
+dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:0}dt{color:var(--ink2)}dd{margin:0}
+.barra{height:8px;background:var(--soft);border-radius:4px;max-width:420px}.barra i{display:block;height:8px;background:var(--ok);border-radius:4px}
+.fundo{position:fixed;inset:0;background:#0000004d;display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}.janela{background:#fff;border-radius:6px;padding:20px;max-width:480px;width:100%;display:flex;flex-direction:column;gap:12px}
+ol,ul{margin:0;padding-left:20px}
+@media(prefers-reduced-motion:no-preference){.btn{transition:background .1s}}
+</style></head>
+<body><div id="app"></div>
+<script>"use strict";var PCP=(()=>{var mo=Object.defineProperty;var Qo=Object.getOwnPropertyDescriptor;var Bo=Object.getOwnPropertyNames;var Vo=Object.prototype.hasOwnProperty;var Jo=(o,a)=>{for(var e in a)mo(o,e,{get:a[e],enumerable:!0})},Xo=(o,a,e,n)=>{if(a&&typeof a=="object"||typeof a=="function")for(let i of Bo(a))!Vo.call(o,i)&&i!==e&&mo(o,i,{get:()=>a[i],enumerable:!(n=Qo(a,i))||n.enumerable});return o};var Zo=o=>Xo(mo({},"__esModule",{value:!0}),o);var ba={};Jo(ba,{ETAPAS_GANTT:()=>fo,compararFila:()=>w,estoqueForaDoCalculo:()=>oo,etapaLabel:()=>Q,etapasPorDia:()=>yo,foraDaJanela:()=>Lo,formatDias:()=>eo,formatarData:()=>B,formatarDataCurta:()=>_o,minutosEmDias:()=>Fo,montarAvisos:()=>qo,montarPendencias:()=>Uo,ocupacaoDoDia:()=>No,planejarInsercao:()=>Ao,posicaoDepoisDe:()=>Co,producaoConcluida:()=>$o,programar:()=>Do,proximoCodigo:()=>So,readDiasUteis:()=>jo,reordenar:()=>ao,situacaoProposta:()=>wo,textoDias:()=>To});function j(o,a){return o.dia!==a.dia?o.dia-a.dia:o.frac-a.frac}function K(o,a){return j(o,a)>=0?o:a}var Y=class{constructor(a,e){this.calendario=a;this.capFn=e;this.ocupado=new Map}capacidade(a,e){return this.capFn(a,e)}minutoInicial(a,e,n){return n!==e.dia?0:Math.ceil(e.frac*this.capacidade(a,n)-1e-9)}livres(a,e,n){let i=this.capacidade(a,e);if(n>=i)return[];let c=this.ocupado.get(`${a}|${e}`)??[],s=[],d=n;for(let[t,m]of c)if(!(m<=d)&&(t>d&&s.push([d,Math.min(t,i)]),d=Math.max(d,m),d>=i))break;return d<i&&s.push([d,i]),s.filter(([t,m])=>m>t)}usado(a,e){return(this.ocupado.get(`${a}|${e}`)??[]).reduce((n,[i,c])=>n+(c-i),0)}reservar(a){for(let e of a){let n=`${e.recursoId}|${e.dia}`,i=this.ocupado.get(n)??[];i.push([e.inicio,e.fim]),i.sort((c,s)=>c[0]-s[0]),this.ocupado.set(n,i)}}liberar(a){for(let e of a){let n=`${e.recursoId}|${e.dia}`,i=this.ocupado.get(n)??[],c=i.findIndex(([s,d])=>s===e.inicio&&d===e.fim);c>=0&&i.splice(c,1)}}ponto(a,e,n){let i=this.capacidade(a,e);return{dia:e,frac:i>0?n/i:1}}planejarUnica(a,e,n,i=e){let c=[],s=e,d=i-e,t=d*2>=i?n:null,m=d;for(let h=n.dia;s>0;h++){if(h>=this.calendario.total)return null;for(let[E,D]of this.livres(a,h,this.minutoInicial(a,n,h))){let O=Math.min(D-E,s);if(!t&&(m+O)*2>=i){let S=E+Math.ceil(i/2-m-1e-9);t=this.ponto(a,h,S)}if(c.push({recursoId:a,dia:h,inicio:E,fim:E+O}),m+=O,s-=O,s===0)break}}if(c.length===0)return null;let u=c[0],p=c[c.length-1];return{segmentos:c,inicio:this.ponto(u.recursoId,u.dia,u.inicio),fim:this.ponto(p.recursoId,p.dia,p.fim),meio:t??this.ponto(p.recursoId,p.dia,p.fim)}}planejarDividida(a,e,n=0){let i=[],c=n,s=c>=.5-1e-9?e:null,d=null;for(let m=e.dia;c<1-1e-9;m++){if(m>=this.calendario.total)return null;for(let u of a){if(c>=1-1e-9)break;for(let[p,h]of this.livres(u.id,m,this.minutoInicial(u.id,e,m))){let E=Math.ceil((1-c)*u.necessario-1e-9),D=Math.min(h-p,E);if(D<=0)break;!s&&c+D/u.necessario>=.5-1e-9&&(s=this.ponto(u.id,m,p+Math.ceil((.5-c)*u.necessario-1e-9))),i.push({recursoId:u.id,dia:m,inicio:p,fim:p+D}),c+=D/u.necessario;let O=this.ponto(u.id,m,p+D);if(d=d?K(d,O):O,c>=1-1e-9)break}}}if(i.length===0||!d)return null;let t=i.reduce((m,u)=>u.dia<m.dia||u.dia===m.dia&&u.inicio<m.inicio?u:m);return{segmentos:i,inicio:this.ponto(t.recursoId,t.dia,t.inicio),fim:d,meio:s??d}}};function Eo(o){if(!/^\d{4}-\d{2}-\d{2}$/.test(o))throw new Error(`Data inv\xE1lida: "${o}"`);return Date.parse(`${o}T00:00:00Z`)}function Ho(o){return new Date(o).toISOString().slice(0,10)}function z(o,a){return Ho(Eo(o)+a*864e5)}function Yo(o){return new Date(Eo(o)).getUTCDay()}var q=class{constructor(a,e,n){this.diasUteis=[];this.feriados=new Set(e.map(i=>i.data));for(let i=0;i<=n;i++){let c=z(a,i);this.isDiaUtil(c)&&this.diasUteis.push(c)}}isDiaUtil(a){let e=Yo(a);return e!==0&&e!==6&&!this.feriados.has(a)}get total(){return this.diasUteis.length}data(a){let e=this.diasUteis[a];if(e===void 0)throw new Error(`Dia ${a} fora do horizonte`);return e}indice(a){let e=0,n=this.diasUteis.length;for(;e<n;){let i=e+n>>1;this.diasUteis[i]<a?e=i+1:n=i}return e}addDiasUteis(a,e){let n=a,i=e;for(;i>0;)n=z(n,1),this.isDiaUtil(n)&&i--;return n}proximoDiaUtil(a){let e=a;for(;!this.isDiaUtil(e);)e=z(e,1);return e}};function Ko(o,a){return Math.round(o*a.minutosDiaPadrao)}function W(o,a){return o.origem==="CALCULADA"&&o.duracaoMinutos!==null?o.duracaoMinutos>0?o.duracaoMinutos:null:o.duracaoDiasManual===null||o.duracaoDiasManual<=0?null:Math.max(1,Ko(o.duracaoDiasManual,a))}function F(o){return o.origem==="CALCULADA"&&o.duracaoMinutos!==null?o.duracaoMinutos>0:o.duracaoDiasManual!==null&&o.duracaoDiasManual>0}function xo(o){if(o.length===0)return null;let a=o.map(e=>e.data).sort();return{recursoIds:[...new Set(o.map(e=>e.recursoId))].sort((e,n)=>e-n),inicio:a[0],fim:a[a.length-1],minutos:o.reduce((e,n)=>e+n.minutos,0)}}function Wo(o,a){return!o||!a?o===a:o.inicio===a.inicio&&o.fim===a.fim&&o.minutos===a.minutos&&o.recursoIds.join(",")===a.recursoIds.join(",")}function Mo(o,a,e){let n=o.programacaoAtual.filter(l=>l.data>=o.dataBase),i=l=>`${l.ofEtapaId}|${l.recursoId}|${l.data}`,c=new Map(n.map(l=>[i(l),l])),s=new Map(a.map(l=>[i(l),l])),d=[],t=[];for(let l of a){let I=c.get(i(l));I?(I.minutos!==l.minutos||I.ordemNoDia!==l.ordemNoDia||(I.observacao??null)!==l.observacao)&&t.push({antes:I,depois:l}):d.push(l)}let m=n.filter(l=>!s.has(i(l))),u=new Map;for(let l of o.ofs)for(let I of l.etapas)u.set(I.id,{ofId:l.id,codigo:l.codigo,etapa:I.etapa});let p=l=>{let I=new Map;for(let $ of l)I.set($.ofEtapaId,[...I.get($.ofEtapaId)??[],$]);return I},h=p(n),E=p(a),D=[];for(let l of new Set([...h.keys(),...E.keys()])){let I=xo(h.get(l)??[]),$=xo(E.get(l)??[]);if(Wo(I,$))continue;let L=u.get(l);D.push({ofEtapaId:l,ofId:L?.ofId??0,codigo:L?.codigo??`etapa ${l}`,etapa:L?.etapa??"?",antes:I,depois:$})}D.sort((l,I)=>l.codigo.localeCompare(I.codigo,"pt-BR",{numeric:!0})||l.ofEtapaId-I.ofEtapaId);let O=e.filter(l=>l.dataEntregaPrevistaAtual!==l.carregamento).map(l=>({ofId:l.ofId,codigo:l.codigo,antes:l.dataEntregaPrevistaAtual,depois:l.carregamento})),S=new Set(e.map(l=>l.ofId)),y=new Map;for(let l of m){let I=u.get(l.ofEtapaId);if(I&&S.has(I.ofId))continue;let $=I?.codigo??`etapa ${l.ofEtapaId}`;y.set($,(y.get($)??0)+1)}return{diff:{criar:d,remover:m,alterar:t,etapasMovidas:D,datas:O},removidasPorOf:y}}var oa=3*366,aa=["CORTE","USINAGEM","MONTAGEM"],ea=5,G=class extends Error{constructor(e,n,i){super(n);this.motivo=e;this.etapa=i}};function vo(o){let a=Number(o.replace(/\D/g,""));return Number.isFinite(a)?a:Number.MAX_SAFE_INTEGER}function ta(o,a){if(o.prioridade!==a.prioridade)return o.prioridade-a.prioridade;let e=o.dataLiberacaoProjeto??"9999-12-31",n=a.dataLiberacaoProjeto??"9999-12-31";if(e!==n)return e<n?-1:1;let i=vo(o.codigo),c=vo(a.codigo);return i!==c?i-c:o.id-a.id}function ra(o,a){return o.ordem-a.ordem||o.id-a.id}function Do(o){let a=[],e=new q(o.dataBase,o.feriados,o.horizonteDias??oa);if(e.total===0)throw new Error("Nenhum dia \xFAtil no horizonte do motor");let n=e.data(0),i=[...o.recursos].sort(ra),c=new Map(i.map(r=>[r.id,r])),s=i.filter(r=>!r.jornadaConfirmada);s.length>0&&a.push({tipo:"jornada_provisoria",mensagem:`Jornada n\xE3o confirmada em ${s.length} recurso(s): ${s.map(r=>`${r.nome} (${r.minutosDiaPadrao} min)`).join(", ")}. Os minutos por dia s\xE3o provis\xF3rios.`}),a.push({tipo:"feriados_incompletos",mensagem:`${o.feriados.length} feriado(s) cadastrado(s). A verifica\xE7\xE3o de feriados nunca \xE9 completa: confira os locais e o recesso (R2).`});for(let r of i)r.fatorVelocidade!==1&&a.push({tipo:"fator_velocidade",mensagem:`${r.nome} tem fator de velocidade ${r.fatorVelocidade}, que ainda n\xE3o \xE9 aplicado (pend\xEAncia com o Pedro).`});let d=new Map;for(let r of o.excecoes)if(c.has(r.recursoId)){if(!e.isDiaUtil(r.data)){a.push({tipo:"excecao_dia_nao_util",mensagem:`Exce\xE7\xE3o de capacidade em ${r.data} (${c.get(r.recursoId).nome}) ignorada: n\xE3o \xE9 dia \xFAtil.`});continue}d.set(`${r.recursoId}|${r.data}`,Math.max(0,r.minutos))}let t=new Y(e,(r,f)=>{let P=c.get(r);return P?d.get(`${r}|${e.data(f)}`)??P.minutosDiaPadrao:0}),m=new Map;for(let r of o.programacaoAtual)r.data>=o.dataBase||m.set(r.ofEtapaId,[...m.get(r.ofEtapaId)??[],{recursoId:r.recursoId,minutos:r.minutos}]);let u=[],p=[],h=new Set;for(let r of o.ofs)if(r.status==="ATIVA"){if(!r.dataLiberacaoProjeto){if(!o.assumirLiberacao){u.push({ofId:r.id,codigo:r.codigo,prioridade:r.prioridade,motivo:"nao_liberada"});continue}h.add(r.id),a.push({tipo:"liberacao_assumida",ofId:r.id,codigo:r.codigo,mensagem:`${r.codigo}: sem data de libera\xE7\xE3o; simulada como liberada em ${n} (data inventada).`})}if(r.etapas.some(f=>f.etapa==="ESTOQUE"&&F(f))){u.push({ofId:r.id,codigo:r.codigo,prioridade:r.prioridade,motivo:"estoque_pendente"}),a.push({tipo:"estoque_pendente",ofId:r.id,codigo:r.codigo,etapa:"ESTOQUE",mensagem:`${r.codigo}: tem etapa de estoque, mas a regra do estoque ainda n\xE3o foi definida com o Pedro. OF n\xE3o programada.`});continue}if(!r.etapas.some(f=>f.etapa!=="ESTOQUE"&&F(f))){u.push({ofId:r.id,codigo:r.codigo,prioridade:r.prioridade,motivo:"sem_duracao"}),a.push({tipo:"sem_duracao",ofId:r.id,codigo:r.codigo,mensagem:`${r.codigo}: nenhuma etapa com dura\xE7\xE3o (R14). OF n\xE3o programada.`});continue}p.push(r)}p.sort(ta);let E=new Map;for(let r of p)E.set(r.prioridade,[...E.get(r.prioridade)??[],r]);for(let[r,f]of E)f.length<2||a.push({tipo:"prioridade_repetida",mensagem:`Prioridade ${r} repetida em ${f.map(P=>P.codigo).join(", ")}. Programadas nesta ordem (libera\xE7\xE3o, depois c\xF3digo).`});function D(r,f){let P=i.filter(g=>g.etapas.includes(r.etapa));return r.recursosPermitidos.length===0?(f.push(r.etapa),P):P.filter(g=>r.recursosPermitidos.includes(g.id))}function O(r){let f=m.get(r.id)??[],P=0;for(let g of f){let x=c.get(g.recursoId),_=x?W(r,x):null;_&&(P+=g.minutos/_)}return{fracao:P,recursoIds:[...new Set(f.map(g=>g.recursoId))]}}function S(r,f,P){let g=O(r);if(g.fracao>=1-1e-9)return{segmentos:[],inicio:P,fim:P,meio:P};if(r.divisaoPermitida&&f.length>1){let A=f.map(R=>({id:R.id,necessario:W(r,R)}));return t.planejarDividida(A,P,g.fracao)}let x=f.filter(A=>g.recursoIds.includes(A.id)),_=x.length>0?x:f,v=null;for(let A of _){let R=W(r,A),V=Math.ceil(R*(1-g.fracao)-1e-9),U=t.planejarUnica(A.id,V,P,R);U&&(!v||j(U.fim,v.fim)<0)&&(v=U)}return v}let y=new Map,l=[];function I(r,f){if(f.segmentos.length===0)return null;let P=[...new Set(f.segmentos.map(g=>g.recursoId))];return{ofEtapaId:r.id,etapa:r.etapa,recursoIds:P,dividida:P.length>1,minutos:f.segmentos.reduce((g,x)=>g+(x.fim-x.inicio),0),inicio:e.data(f.inicio.dia),fim:e.data(Math.max(...f.segmentos.map(g=>g.dia)))}}function $(r){let f=[],P=(g,x)=>{t.reservar(x.segmentos),f.push(...x.segmentos.map(_=>({..._,ofEtapaId:g.id,etapa:g.etapa})))};try{let g=r.dataLiberacaoProjeto&&!h.has(r.id)?r.dataLiberacaoProjeto:n,x={dia:e.indice(g>n?g:n),frac:0};if(x.dia>=e.total)throw new G("sem_capacidade",`${r.codigo}: libera\xE7\xE3o fora do horizonte do motor.`);let _=new Map(r.etapas.filter(b=>b.etapa!=="ESTOQUE"&&F(b)).map(b=>[b.etapa,b])),v=_.get("COLAGEM"),A=[],R=[],V=[],U=!1,ro=b=>{let M=D(b,A);if(M.length===0)throw new G("sem_recurso",`${r.codigo}: nenhuma m\xE1quina ativa dispon\xEDvel para ${b.etapa}.`,b.etapa);return M},J=b=>new G("sem_capacidade",`${r.codigo}: sem capacidade para ${b.etapa} dentro do horizonte.`,b.etapa),X=(b,M)=>{P(b,M);let T=I(b,M);T&&R.push(T),V.push(M.fim)};for(let b of aa){let M=_.get(b);if(!M)continue;let T=ro(M);if(b==="MONTAGEM"&&v){let Io=ro(v),zo=M.divisaoPermitida&&T.length>1?[T]:T.map(so=>[so]),C=null;for(let so of zo){let N=S(M,so,x);if(!N)continue;t.reservar(N.segmentos);let co=S(v,Io,{dia:N.inicio.dia+1,frac:0});if(t.liberar(N.segmentos),!co)continue;let uo=K(N.fim,co.fim);(!C||j(uo,C.fimProducao)<0||j(uo,C.fimProducao)===0&&j(N.fim,C.montagem.fim)<0)&&(C={montagem:N,colagem:co,fimProducao:uo})}if(!C)throw J(M);X(M,C.montagem);let Po=S(v,Io,{dia:C.montagem.inicio.dia+1,frac:0});if(!Po)throw J(v);X(v,Po),U=!0,x=r.prazoCurto?C.montagem.meio:C.montagem.fim;continue}let H=S(M,T,x);if(!H)throw J(M);X(M,H),x=r.prazoCurto?H.meio:H.fim}if(v&&!U){let b=S(v,ro(v),x);if(!b)throw J(v);X(v,b)}A.length>0&&a.push({tipo:"sem_maquina_permitida",ofId:r.id,codigo:r.codigo,mensagem:`${r.codigo}: sem m\xE1quinas permitidas em ${A.join(", ")} (R14). Usadas todas as m\xE1quinas da etapa.`});let Go=V.reduce((b,M)=>K(b,M)),ho=f.length>0,io=ho?e.data(Math.max(...f.map(b=>b.dia))):e.data(Math.min(Go.dia,e.total-1)),ko=ho?e.data(Math.min(...f.map(b=>b.dia))):io,no=e.addDiasUteis(io,ea),Z=r.dataEntregaCliente,bo=Z!==null&&no>Z;bo&&a.push({tipo:"estouro_entrega",ofId:r.id,codigo:r.codigo,mensagem:`${r.codigo}: carregamento calculado ${no} passa da data informada ao cliente ${Z}${r.entregaComprometida?" (entrega comprometida)":""}. Precisa de aprova\xE7\xE3o do PCP.`}),r.entregaComprometida&&!Z&&a.push({tipo:"comprometida_sem_data",ofId:r.id,codigo:r.codigo,mensagem:`${r.codigo}: marcada como entrega comprometida, mas sem data do cliente.`}),y.set(r.id,f),l.push({ofId:r.id,codigo:r.codigo,prioridade:r.prioridade,etapas:R,inicio:ko,fimProducao:io,carregamento:no,dataEntregaPrevistaAtual:r.dataEntregaPrevista,dataEntregaCliente:r.dataEntregaCliente,entregaComprometida:r.entregaComprometida,estouro:bo,liberacaoAssumida:h.has(r.id)})}catch(g){if(t.liberar(f),!(g instanceof G))throw g;u.push({ofId:r.id,codigo:r.codigo,prioridade:r.prioridade,motivo:g.motivo}),a.push({tipo:g.motivo==="sem_recurso"?"sem_recurso":"sem_capacidade",ofId:r.id,codigo:r.codigo,etapa:g.etapa,mensagem:`${g.message} OF n\xE3o programada.`})}}for(let r of p)$(r);let L=ia(o.ofs,y,e),go=Mo(o,L,l);for(let[r,f]of go.removidasPorOf)a.push({tipo:"programacao_removida",codigo:r,mensagem:`${r}: ${f} linha(s) de programa\xE7\xE3o futura ser\xE3o removidas (OF fora desta programa\xE7\xE3o).`});return{dataBase:n,simulacao:h.size>0,programacao:L,ofs:l,naoProgramadas:u,alertas:a,diff:go.diff}}function ia(o,a,e){let n=new Map(o.map(s=>[s.id,s.codigo])),i=new Map;for(let[s,d]of a)for(let t of d){let m=`${t.ofEtapaId}|${t.recursoId}|${t.dia}`,u=i.get(m);if(u){u.minutos+=t.fim-t.inicio,u.primeiroMinuto=Math.min(u.primeiroMinuto,t.inicio);continue}i.set(m,{ofId:s,codigo:n.get(s)??String(s),ofEtapaId:t.ofEtapaId,etapa:t.etapa,recursoId:t.recursoId,data:e.data(t.dia),minutos:t.fim-t.inicio,ordemNoDia:0,observacao:t.etapa==="COLAGEM"?"COLAGEM":null,primeiroMinuto:t.inicio,dia:t.dia})}let c=new Map;for(let s of i.values()){let d=`${s.recursoId}|${s.dia}`;c.set(d,[...c.get(d)??[],s])}for(let s of c.values())s.sort((d,t)=>d.primeiroMinuto-t.primeiroMinuto),s.forEach((d,t)=>d.ordemNoDia=t+1);return[...i.values()].map(s=>({ofId:s.ofId,codigo:s.codigo,ofEtapaId:s.ofEtapaId,etapa:s.etapa,recursoId:s.recursoId,data:s.data,minutos:s.minutos,ordemNoDia:s.ordemNoDia,observacao:s.observacao})).sort((s,d)=>s.data!==d.data?s.data<d.data?-1:1:s.recursoId-d.recursoId||s.ordemNoDia-d.ordemNoDia)}var na=["CORTE","USINAGEM","MONTAGEM","COLAGEM"];function Oo(o){let a=Number(o.replace(/\D/g,""));return Number.isFinite(a)?a:Number.MAX_SAFE_INTEGER}function w(o,a){if(o.prioridade!==a.prioridade)return o.prioridade-a.prioridade;let e=o.dataLiberacaoProjeto??"9999-12-31",n=a.dataLiberacaoProjeto??"9999-12-31";if(e!==n)return e<n?-1:1;let i=Oo(o.codigo),c=Oo(a.codigo);return i!==c?i-c:o.id-a.id}function $o(o){let a=na.map(e=>o[e]).filter(e=>e!==null);return a.length>0&&a.every(e=>e===0)}function oo(o){return o.some(a=>a.etapa==="ESTOQUE"&&F(a))}function sa(o,a){let e=new Map,n=d=>e.get(o[d].id)??o[d].prioridade,i=o[a],c=a>0?n(a-1):0,s=a<o.length-1?n(a+1):Number.POSITIVE_INFINITY;e.set(i.id,i.prioridade>c&&i.prioridade<s&&i.prioridade>=1?i.prioridade:Math.max(1,c+1));for(let d=a+1;d<o.length&&!(o[d].prioridade>n(d-1));d++){let t=d===a+1?n(d-1)+1-o[d].prioridade:n(d-1)-o[d-1].prioridade;e.set(o[d].id,o[d].prioridade+Math.max(t,1))}return e}function da(o,a){if(a===o.length-1)return null;let e=new Map,n=t=>e.get(o[t].id)??o[t].prioridade,i=o[a],c=a>0?n(a-1):0,s=n(a+1),d=i.prioridade>c&&i.prioridade<s&&i.prioridade>=1?i.prioridade:s-1;if(d<1)return null;e.set(i.id,d);for(let t=a-1;t>=0&&!(o[t].prioridade<n(t+1));t--){let m=t===a-1?o[t].prioridade-(n(t+1)-1):o[t+1].prioridade-n(t+1),u=o[t].prioridade-Math.max(m,1);if(u<1)return null;e.set(o[t].id,u)}return e}function ao(o,a,e){let n=[...o].sort(w),i=n.findIndex(u=>u.id===a);if(i<0)throw new Error("OF n\xE3o est\xE1 na fila");let c=Math.min(Math.max(Math.trunc(e),1),n.length)-1;if(c===i)return[];let[s]=n.splice(i,1);n.splice(c,0,s);let d=u=>[...u.entries()].map(([p,h])=>{let E=n.find(D=>D.id===p);return{id:p,codigo:E.codigo,antes:E.prioridade,depois:h}}).filter(p=>p.antes!==p.depois),t=u=>[u.length,u.reduce((p,h)=>p+Math.abs(h.depois-h.antes),0)],m=[sa(n,c),da(n,c)].filter(u=>u!==null).map(d).filter(u=>n.map(h=>({...h,prioridade:u.find(E=>E.id===h.id)?.depois??h.prioridade})).sort(w)[c].id===a).sort((u,p)=>t(u)[0]-t(p)[0]||t(u)[1]-t(p)[1]);if(!m.length)throw new Error("Reordena\xE7\xE3o inconsistente: a OF n\xE3o ficou na posi\xE7\xE3o pedida");return m[0]}var k=-1;function Ao(o,a,e){let n=o.reduce((p,h)=>Math.max(p,h.prioridade),0)+1,i=[...o,{id:k,codigo:a.codigo,prioridade:n,dataLiberacaoProjeto:a.dataLiberacaoProjeto}],c=i.length,s=e===null?c:Math.min(Math.max(Math.trunc(e),1),c),d=s===c?[]:ao(i,k,s),t=d.find(p=>p.id===k)?.depois??n,m=d.filter(p=>p.id!==k),u=i.map(p=>({...p,prioridade:p.id===k?t:m.find(h=>h.id===p.id)?.depois??p.prioridade})).sort(w);return{prioridade:t,posicao:u.findIndex(p=>p.id===k)+1,totalNaFila:c,mudancas:m}}function Co(o,a){if(a===null)return 1;let e=o.indexOf(a);return e<0?void 0:e+2}var lo=[{value:"ESTOQUE",label:"Estoque"},{value:"CORTE",label:"Corte"},{value:"USINAGEM",label:"Usinagem"},{value:"MONTAGEM",label:"Montagem"},{value:"COLAGEM",label:"Colagem"}],qa=[...lo.filter(o=>o.value!=="ESTOQUE"),...lo.filter(o=>o.value==="ESTOQUE")];var ca=1e3;function So(o){let a=o!==null&&Number.isSafeInteger(o)?o:0;return`#${Math.max(a,ca)+1}`}function Q(o){return lo.find(a=>a.value===o)?.label??o}function eo(o){return o===null?"":o.toLocaleString("pt-BR",{maximumFractionDigits:2})}var ua=/(?<![\w-])(\d{4})-(\d{2})-(\d{2})(?![\w:-])/g;function ma(o){return o.replace(ua,(a,e,n,i)=>`${i}/${n}/${e}`)}function B(o,a="-"){return o?`${o.slice(8,10)}/${o.slice(5,7)}/${o.slice(0,4)}`:a}function _o(o){return`${o.slice(8,10)}/${o.slice(5,7)}`}var la=[[/\s*\(R\d{1,2}\)/g,""],[/\(pendência com o Pedro\)/g,"(a definir)"]];function Ro(o){return la.reduce((a,[e,n])=>a.replace(e,n),ma(o))}function Fo(o,a){return a<=0?0:Math.round(o/a*100)/100}function To(o){return`${eo(o)} ${o>0&&o<=1?"dia":"dias"}`}function No(o,a){return a<=0?o>0?1/0:0:o/a}var pa={feriados_incompletos:"Feriados",fator_velocidade:"Fator de velocidade n\xE3o aplicado",excecao_dia_nao_util:"Exce\xE7\xE3o em dia n\xE3o \xFAtil (ignorada)",prioridade_repetida:"Prioridade repetida",sem_maquina_permitida:"Etapa sem m\xE1quina permitida",sem_recurso:"Sem m\xE1quina dispon\xEDvel",sem_duracao:"OF sem dias nas etapas",sem_capacidade:"Sem capacidade no per\xEDodo",comprometida_sem_data:"Comprometida sem data do cliente",liberacao_assumida:"Libera\xE7\xE3o inventada",programacao_removida:"Programa\xE7\xE3o futura removida"},fa=["jornada_provisoria","estoque_pendente","estouro_entrega"],po=(o,a,e)=>`${o} ${o===1?a:e}`;function qo(o,a){let e=[],n=t=>o.naoProgramadas.filter(m=>m.motivo===t).sort((m,u)=>m.prioridade-u.prioridade),i=n("nao_liberada");i.length>0&&e.push({id:"sem_liberacao",rotulo:`${i.length} sem libera\xE7\xE3o`,tom:"aviso",explicacao:"Sem data de libera\xE7\xE3o do projeto, a OF n\xE3o entra no c\xE1lculo.",itens:i.map(t=>({texto:`${t.codigo} (prioridade ${t.prioridade})`,ofId:t.ofId})),acao:{href:"/pendencias#liberacao",texto:"Preencher as datas em O que falta"}});let c=n("estoque_pendente");c.length>0&&e.push({id:"estoque",rotulo:`${c.length} com estoque`,tom:"aviso",explicacao:"OF com dias de estoque fica fora do c\xE1lculo at\xE9 a regra do estoque ser definida. Apague o valor do Estoque ou ponha 0 na tela da OF.",itens:c.map(t=>({texto:`${t.codigo} (prioridade ${t.prioridade})`,ofId:t.ofId})),acao:{href:"/pendencias#estoque",texto:"Ver em O que falta"}});let s=o.ofs.filter(t=>t.estouro);e.push({id:"prazo",rotulo:`${s.length} ${s.length===1?"passa":"passam"} do prazo do cliente`,tom:s.length>0?"erro":"sucesso",explicacao:s.length>0?"O carregamento calculado fica depois da data informada ao cliente. Para gravar, \xE9 preciso aceitar o estouro.":"Nenhuma OF programada passa da data informada ao cliente.",itens:s.map(t=>({texto:`${t.codigo}: carregamento ${B(t.carregamento)}, cliente ${B(t.dataEntregaCliente)}`,ofId:t.ofId}))}),a.length>0&&e.push({id:"jornada",rotulo:`Jornada n\xE3o confirmada em ${po(a.length,"m\xE1quina","m\xE1quinas")}`,tom:"aviso",explicacao:"As datas usam a jornada provis\xF3ria. N\xE3o grave a programa\xE7\xE3o antes de confirmar as jornadas.",itens:a.map(t=>({texto:t})),acao:{href:"/cadastros/recursos",texto:"Confirmar em Cadastros > Recursos"}});let d=new Map;for(let t of o.alertas)fa.includes(t.tipo)||d.set(t.tipo,[...d.get(t.tipo)??[],Ro(t.mensagem)]);return d.size>0&&e.push({id:"outros",rotulo:po(d.size,"outro aviso","outros avisos"),tom:"aviso",explicacao:"Pontos que n\xE3o impedem o c\xE1lculo, mas valem uma conferida.",itens:[...d.entries()].map(([t,m])=>({texto:`${pa[t]??t} (${m.length})`,detalhes:m}))}),e}function wo(o,a){if(a===0)return{tipo:"sem_plano",texto:"Nenhum plano gravado ainda. A grade mostra a proposta calculada agora.",ofsQueMudam:[]};let{criar:e,alterar:n,remover:i,etapasMovidas:c,datas:s}=o.diff;if(e.length+n.length+i.length===0&&s.length===0)return{tipo:"igual",texto:"A proposta \xE9 igual ao plano gravado.",ofsQueMudam:[]};let d=[...new Set([...c.map(t=>t.ofId),...s.map(t=>t.ofId)])];return{tipo:"muda",texto:`${po(d.length,"OF muda","OFs mudam")} em rela\xE7\xE3o ao plano gravado.`,ofsQueMudam:d}}var fo=["CORTE","USINAGEM","MONTAGEM","COLAGEM"];function yo(o,a){return a.map(e=>fo.filter(n=>o.etapas.some(i=>i.etapa===n&&i.inicio<=e&&e<=i.fim)))}function Lo(o,a){return a.length===0?{antes:!1,depois:!1}:{antes:o.etapas.some(e=>e.inicio<a[0]),depois:o.etapas.some(e=>e.fim>a[a.length-1])}}var ga=["PALHOCA","RECESSO"];function ha(o,a){let e=new Date(`${o}T00:00:00Z`);return e.setUTCDate(e.getUTCDate()+a),e.toISOString().slice(0,10)}var to=(o,a,e)=>`${o} ${o===1?a:e}`;function Uo(o){let a=o.ofs.filter(t=>t.liberacao===null),e=o.recursos.filter(t=>!t.jornadaConfirmada),n=o.ofs.map(t=>({o:t,etapas:t.etapas.filter(m=>m.etapa!=="ESTOQUE"&&m.maquinasPermitidas===0&&F(m))})).filter(t=>t.etapas.length>0),i=o.ofs.filter(t=>oo(t.etapas)),c=ha(o.hoje,365),s=o.feriados.filter(t=>ga.includes(t.escopo)&&t.data>=o.hoje&&t.data<=c),d=[{id:"liberacao",titulo:"Data de libera\xE7\xE3o das OFs",resolvido:a.length===0,resumo:a.length===0?"Todas as OFs ativas t\xEAm data de libera\xE7\xE3o.":`${to(a.length,"OF sem data de libera\xE7\xE3o","OFs sem data de libera\xE7\xE3o")}: elas n\xE3o entram no c\xE1lculo. Preencha abaixo, na ordem da fila.`,ofs:a.map(t=>({id:t.id,codigo:t.codigo,prioridade:t.prioridade}))},{id:"jornada",titulo:"Jornada das m\xE1quinas",resolvido:e.length===0,resumo:e.length===0?"Todas as m\xE1quinas t\xEAm a jornada confirmada.":`${o.recursos.length-e.length} de ${o.recursos.length} m\xE1quinas com jornada confirmada. Falta: ${e.map(t=>t.nome).join(", ")}.`,acao:{href:"/cadastros/recursos",texto:"Confirmar em Cadastros > Recursos"},ofs:[]},{id:"maquinas",titulo:"M\xE1quinas permitidas por etapa",resolvido:n.length===0,resumo:n.length===0?"Toda etapa com dias tem m\xE1quina marcada.":`${to(n.length,"OF tem","OFs t\xEAm")} etapa sem m\xE1quina marcada; o c\xE1lculo usa todas as m\xE1quinas da etapa. Marque na tela da OF.`,ofs:n.map(({o:t,etapas:m})=>({id:t.id,codigo:t.codigo,prioridade:t.prioridade,detalhe:m.map(u=>Q(u.etapa)).join(", ")}))},{id:"estoque",titulo:"OFs com estoque",resolvido:i.length===0,resumo:i.length===0?"Nenhuma OF com dias de estoque.":`${to(i.length,"OF tem dias de estoque e fica","OFs t\xEAm dias de estoque e ficam")} fora do c\xE1lculo at\xE9 a regra do estoque ser definida. Apague o valor ou ponha 0 na tela da OF.`,ofs:i.map(t=>({id:t.id,codigo:t.codigo,prioridade:t.prioridade}))},{id:"calendario",titulo:"Calend\xE1rio (feriados locais e recesso)",resolvido:s.length>0,resumo:s.length>0?`${to(s.length,"feriado local ou recesso cadastrado","feriados locais ou recesso cadastrados")} nos pr\xF3ximos 12 meses. Confira se est\xE1 completo: o sistema n\xE3o tem como saber.`:"S\xF3 h\xE1 feriados nacionais ou estaduais nos pr\xF3ximos 12 meses. Cadastre o feriado de Palho\xE7a, o recesso e as paradas da f\xE1brica.",acao:{href:"/cadastros/feriados",texto:"Abrir Cadastros > Feriados"},ofs:[]}];return{itens:d,resolvidos:d.filter(t=>t.resolvido).length}}function jo(o,a,e,n=1){if(n===1)return new q(o,a,e*3+30).diasUteis.slice(0,e);let i=z(o,-(e*3+30));return new q(i,a,e*3+30).diasUteis.filter(s=>s<o).slice(-e)}return Zo(ba);})();
+</script>
+<script>(function () {
+  const P = PCP;
+  const hoje = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
+  const dia = (n) => { const x = new Date(hoje + "T12:00:00Z"); x.setUTCDate(x.getUTCDate() + n); return x.toISOString().slice(0, 10); };
+  const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const fd = P.formatarData, DIAS = 15;
+  const ETAPAS = ["CORTE", "USINAGEM", "MONTAGEM", "COLAGEM", "ESTOQUE"];
+  const MAQ = { CORTE: [1, 2], USINAGEM: [3, 4], MONTAGEM: [5, 6, 7, 8], COLAGEM: [7], ESTOQUE: [] };
+  const NOMES = ["Serra 1", "Serra 2", "Usinagem 1", "Usinagem 2", "Montagem Linha 1", "Montagem Linha 2", "Montagem Linha 3", "Montagem Linha 4"];
+  const RECURSOS = NOMES.map((nome, i) => ({ id: i + 1, nome, ordem: i + 1, minutosDiaPadrao: 480, fatorVelocidade: 1, etapas: ETAPAS.filter((e) => MAQ[e].includes(i + 1)) }));
+  const OBRAS = ["Residencial Jardim Modelo", "Edifício Exemplo", "Torre Fictícia", "Condomínio Teste", "Parque das Amostras"];
+  const FERIADOS = [["2026-11-15", "Proclamação da República"], ["2026-11-20", "Consciência Negra"], ["2026-12-25", "Natal"], ["2027-01-01", "Confraternização"], ["2027-03-26", "Sexta-feira Santa"], ["2027-04-21", "Tiradentes"]].map(([data, descricao]) => ({ data, descricao, escopo: "NACIONAL" }));
+  const nome = (id) => NOMES[id - 1];
+
+  // código, obra, descrição, liberação (dias a partir de hoje; null = sem data), [corte, usinagem, montagem, colagem, estoque], máquinas do corte
+  const BASE = [
+    ["#11", 0, "Fachada torre A", null, [2, 3, 3, null, null]], ["#12", 1, "Janelas 1º lote", -20, [1, 2, 2, null, null], [1]], ["#13", 2, "Quadros fixos", -15, [2, 1, 3, 2, null], [2]],
+    ["#14", 0, "Brises", null, [1, 3, 3, null, null]], ["#15", 3, "Portas de entrada", -12, [1, 1, 2, null, null], [1]], ["#16", 1, "Guarda-corpo", -10, [3, 2, 4, null, null]],
+    ["#17", 4, "Temperados", -9, [null, null, 1, null, null]], ["#18", 2, "Fachada embasamento", -8, [2, 3, 2, 2, null]], ["#19", 3, "Janelas 2º lote", 2, [2, 2, 3, null, 1]],
+    ["#20", 4, "Portas internas", -6, [1, 2, 2, null, null]], ["#21", 0, "Esquadrias lazer", null, [2, 2, 2, null, null]], ["#22", 1, "Coberturas", -5, [1, 1, 1, 1, null]],
+    ["#23", 2, "Vitrines térreo", 3, [2, 1, 2, null, null]], ["#24", 4, "Painéis fixos", 5, [1, 2, 3, 1, null]],
+  ];
+  function inicial() {
+    return BASE.map(([codigo, obra, descricao, lib, d, corte], i) => ({
+      id: i + 1, codigo, prioridade: i + 1, obra: OBRAS[obra], descricao, lib: lib === null ? null : dia(lib), cliente: null, comprometida: false, prazoCurto: false,
+      dias: Object.fromEntries(ETAPAS.map((e, k) => [e, d[k]])), maq: { CORTE: corte || [], USINAGEM: [], MONTAGEM: [], COLAGEM: [], ESTOQUE: [] },
+    }));
+  }
+  const formVazio = () => ({ obra: "", descricao: "", lugar: "fim", depoisDe: "", lib: "", cliente: "", comprometida: false, prazoCurto: false, dias: {}, maq: {} });
+  let S;
+  function recomecar() {
+    S = { ofs: inicial(), prox: 1000, tela: "nova", visao: "maquina", maquina: null, sel: null, inicio: null, aviso: null, msg: null, jornada: false, calendario: false, form: formVazio(), erros: {}, criada: null, janela: false, mover: null };
+    render();
+  }
+
+  const item = (o) => ({ id: o.id, codigo: o.codigo, prioridade: o.prioridade, dataLiberacaoProjeto: o.lib });
+  const fila = () => [...S.ofs].sort((a, b) => P.compararFila(item(a), item(b)));
+  const porId = (id) => S.ofs.find((o) => o.id === id);
+  function calcular() {
+    return P.programar({
+      dataBase: hoje, programacaoAtual: [], excecoes: [], feriados: S.calendario ? [...FERIADOS, { data: "2026-12-28", descricao: "Recesso", escopo: "RECESSO" }] : FERIADOS,
+      recursos: RECURSOS.map((r) => ({ ...r, jornadaConfirmada: S.jornada })),
+      ofs: S.ofs.map((o) => ({
+        id: o.id, codigo: o.codigo, prioridade: o.prioridade, status: "ATIVA", dataLiberacaoProjeto: o.lib, dataEntregaCliente: o.cliente, entregaComprometida: o.comprometida, dataEntregaPrevista: null, prazoCurto: o.prazoCurto,
+        etapas: ETAPAS.filter((e) => o.dias[e] != null).map((e, i) => ({ id: o.id * 10 + i, etapa: e, duracaoDiasManual: o.dias[e], duracaoMinutos: null, origem: "MANUAL", recursosPermitidos: o.maq[e] || [], divisaoPermitida: false, recursoAlocadoId: null })),
+      })),
+    });
+  }
+  const rotOf = (o, i) => `${i + 1}ª · ${o.codigo} · ${o.obra}${o.descricao ? " · " + o.descricao : ""}`;
+  const opcoes = (lista, atual) => `<option value="">Selecione...</option><option value="inicio" ${atual === "inicio" ? "selected" : ""}>No início da fila (vira a 1ª)</option>` + lista.map((o, i) => `<option value="${o.id}" ${String(atual) === String(o.id) ? "selected" : ""}>${esc(rotOf(o, i))}</option>`).join("");
+  const parseDias = (t) => { const s = String(t).trim().replace(",", "."); if (s === "") return null; return /^\d+(\.\d{1,2})?$/.test(s) && +s <= 999 ? +s : undefined; };
+
+  // ---- Nova OF
+  function previa() {
+    const f = S.form; if (f.lugar !== "escolher" || !f.depoisDe) return "";
+    const l = fila(); const pos = P.posicaoDepoisDe(l.map((o) => o.id), f.depoisDe === "inicio" ? null : +f.depoisDe); const d = l.length - (pos - 1);
+    return `Vai entrar em ${pos}ª. ${d === 0 ? "Nenhuma OF muda de lugar." : `${d === 1 ? "1 OF desce" : d + " OFs descem"} uma posição, e as datas delas podem mudar.`}`;
+  }
+  function blocoLugar() {
+    const f = S.form, e = S.erros;
+    return `<label class="op"><input type="radio" name="lugar" value="fim" ${f.lugar === "fim" ? "checked" : ""}><span>No fim da fila<span class="peq sec" style="display:block">Pode decidir depois, na Rotina diária.</span></span></label>
+      <label class="op"><input type="radio" name="lugar" value="escolher" ${f.lugar === "escolher" ? "checked" : ""}><span>Escolher agora</span></label>
+      ${f.lugar === "escolher" ? `<label class="c" style="padding-left:22px">Entrar logo depois de<select class="ctl" id="depoisDe">${opcoes(fila(), f.depoisDe)}</select><span class="peq av" id="previa" style="font-weight:400">${previa()}</span></label>` : ""}
+      ${e.lugar ? `<span class="err">${e.lugar}</span>` : ""}`;
+  }
+  function telaNova() {
+    const f = S.form, e = S.erros;
+    const linhas = ETAPAS.map((et) => `<tr><td>${P.etapaLabel(et)}</td><td><input class="dia" inputmode="decimal" data-fdia="${et}" aria-label="Dias de ${P.etapaLabel(et)}" value="${esc(f.dias[et] ?? "")}">${et === "ESTOQUE" ? `<div class="peq av" style="max-width:150px">Qualquer valor acima de 0 tira a OF do cálculo, até a regra do estoque ser definida.</div>` : ""}</td>
+      <td>${MAQ[et].length ? `<div class="maqs">${MAQ[et].map((m) => `<label><input type="checkbox" data-fmaq="${et}" value="${m}" ${(f.maq[et] || []).includes(m) ? "checked" : ""}>${nome(m)}</label>`).join("")}</div>` : `<span class="sec">Sem máquina cadastrada</span>`}</td></tr>`).join("");
+    return `<div class="linha entre"><h1>Nova OF</h1><button class="btn" data-a="exemplo">Preencher com um exemplo</button></div>
+    <div class="n info">Experimente: crie uma OF, escolha o lugar dela na fila e veja o resultado na Rotina e na Programação. Os dados são inventados.</div>
+    <form class="form" id="fNova" novalidate>
+      <div><strong>Código</strong><div class="sec">Gerado ao salvar (a partir de ${P.proximoCodigo(S.prox - 1 < 1000 ? null : S.prox)})</div></div>
+      <label class="c">Obra<select class="ctl" id="obra"><option value="">Selecione...</option>${OBRAS.map((o) => `<option ${f.obra === o ? "selected" : ""}>${o}</option>`).join("")}</select>${e.obra ? `<span class="err" style="font-weight:400">${e.obra}</span>` : ""}</label>
+      <label class="c">Descrição<input class="ctl" id="descricao" maxlength="120" value="${esc(f.descricao)}"></label>
+      <fieldset id="lugarBloco"><legend>Lugar na fila</legend>${blocoLugar()}</fieldset>
+      <div class="g3"><label class="c">Liberação do projeto<input class="ctl" type="date" id="lib" value="${f.lib}"></label><label class="c">Entrega informada ao cliente<input class="ctl" type="date" id="cliente" value="${f.cliente}">${e.cliente ? `<span class="err" style="font-weight:400">${e.cliente}</span>` : ""}</label></div>
+      <label class="op"><input type="checkbox" id="comprometida" ${f.comprometida ? "checked" : ""}><span>Entrega comprometida (data do cliente não pode mudar sem motivo)</span></label>
+      <label class="op"><input type="checkbox" id="prazoCurto" ${f.prazoCurto ? "checked" : ""}><span>Prazo curto (a próxima etapa pode começar quando esta chegar a 50%)</span></label>
+      <section style="display:flex;flex-direction:column;gap:8px"><h2>Etapas</h2>
+      <ul class="sec"><li><strong>Dias:</strong> o que ainda falta em cada etapa (aceita 0,5). Vazio = a OF não tem a etapa.</li><li><strong>Máquinas:</strong> nenhuma marcada = o cálculo pode usar todas as máquinas da etapa.</li></ul>
+      ${e.etapas ? `<div class="err">${e.etapas}</div>` : ""}
+      <div class="rolar"><table><thead><tr><th>Etapa</th><th>Dias</th><th>Máquinas permitidas</th></tr></thead><tbody>${linhas}</tbody></table></div></section>
+      ${Object.keys(e).length ? `<div class="n erro" role="alert">Corrija os campos destacados.</div>` : ""}
+      <div><button class="btn p" type="submit">Salvar</button></div>
+    </form>`;
+  }
+  function salvarNova() {
+    const f = S.form, e = {};
+    if (!f.obra) e.obra = "Escolha a obra.";
+    if (f.comprometida && !f.cliente) e.cliente = "Entrega comprometida exige a data informada ao cliente.";
+    if (f.lugar === "escolher" && !f.depoisDe) e.lugar = 'Escolha depois de qual OF ela entra, ou marque "No fim da fila".';
+    const dias = {}; let invalido = false;
+    ETAPAS.forEach((et) => { const v = parseDias(f.dias[et] ?? ""); if (v === undefined) invalido = true; dias[et] = v ?? null; });
+    if (invalido) e.etapas = "Use números de 0 a 999, com até 2 casas (ex.: 0,5).";
+    else if (!["CORTE", "USINAGEM", "MONTAGEM", "COLAGEM"].some((et) => dias[et] > 0)) e.etapas = "Informe os dias de pelo menos uma etapa (corte, usinagem, montagem ou colagem).";
+    S.erros = e; if (Object.keys(e).length) return render();
+    const codigo = P.proximoCodigo(S.prox); S.prox = +codigo.slice(1);
+    const l = fila(); const pos = f.lugar === "escolher" ? P.posicaoDepoisDe(l.map((o) => o.id), f.depoisDe === "inicio" ? null : +f.depoisDe) : null;
+    const plano = P.planejarInsercao(l.map(item), { codigo, dataLiberacaoProjeto: f.lib || null }, pos);
+    plano.mudancas.forEach((m) => { porId(m.id).prioridade = m.depois; });
+    const id = Math.max(...S.ofs.map((o) => o.id)) + 1;
+    S.ofs.push({ id, codigo, prioridade: plano.prioridade, obra: f.obra, descricao: f.descricao, lib: f.lib || null, cliente: f.cliente || null, comprometida: f.comprometida, prazoCurto: f.prazoCurto, dias, maq: Object.fromEntries(ETAPAS.map((et) => [et, f.maq[et] || []])) });
+    S.criada = { id, posicao: plano.posicao, desceram: plano.totalNaFila - plano.posicao };
+    S.form = formVazio(); S.sel = id; S.tela = "criada"; render();
+  }
+  // ---- OF criada / painel
+  function detalhes(id, r, botoes) {
+    const of = r.ofs.find((o) => o.ofId === id), fora = r.naoProgramadas.find((n) => n.ofId === id), o = porId(id);
+    if (!o) return "";
+    const motivos = { nao_liberada: "Fora do cálculo: sem data de liberação do projeto.", sem_duracao: "Fora do cálculo: nenhuma etapa com dias.", estoque_pendente: "Fora do cálculo: tem dias de estoque, e a regra do estoque ainda não foi definida.", sem_recurso: "Fora do cálculo: sem máquina disponível.", sem_capacidade: "Fora do cálculo: não coube no período." };
+    return `<div class="linha entre"><div><h2>OF ${esc(o.codigo)}</h2><div class="sec">${esc(o.obra)}${o.descricao ? " · " + esc(o.descricao) : ""}</div></div>${botoes}</div>
+      ${fora ? `<div class="av">${motivos[fora.motivo] || fora.motivo}</div>` : ""}
+      ${of ? `<ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:4px">${of.etapas.map((e) => `<li><strong style="font-weight:500">${P.etapaLabel(e.etapa)}:</strong> ${e.recursoIds.map(nome).join(" + ")}<span class="sec" style="display:block">${e.inicio === e.fim ? fd(e.inicio) : fd(e.inicio) + " a " + fd(e.fim)}</span></li>`).join("")}</ul>
+      <dl><dt>Fim da produção</dt><dd>${fd(of.fimProducao)}</dd><dt>Carregamento</dt><dd style="font-weight:500">${fd(of.carregamento)}</dd><dt>Data do cliente</dt><dd ${of.estouro ? 'class="err"' : ""}>${fd(of.dataEntregaCliente)}${of.estouro ? " (passa desta data)" : ""}</dd></dl>` : ""}`;
+  }
+  function blocoMover(o) {
+    const l = fila(), pos = l.findIndex((x) => x.id === o.id) + 1, outras = l.filter((x) => x.id !== o.id);
+    return `<div class="linha"><span><strong style="font-weight:500">Lugar na fila:</strong> ${pos}ª de ${l.length}</span>${S.mover === o.id ? "" : `<button class="btn mini" data-a="abrirMover" data-id="${o.id}">Mudar de lugar</button>`}</div>
+      ${S.mover === o.id ? `<label class="c">Colocar logo depois de<select class="ctl" id="moverPara">${opcoes(outras, "")}</select></label><div class="linha"><button class="btn p mini" data-a="mover" data-id="${o.id}">Mover</button><button class="btn mini" data-a="fecharMover">Cancelar</button></div>` : ""}`;
+  }
+  function telaCriada() {
+    const c = S.criada, o = porId(c.id), r = calcular();
+    return `<h1>OF ${esc(o.codigo)} criada</h1>
+      <div class="n sucesso" role="status">OF ${esc(o.codigo)} criada em ${c.posicao}ª posição. ${c.desceram ? `${c.desceram} OF(s) desceram uma posição.` : "Ela entrou no fim da fila."}</div>
+      ${o.lib ? "" : `<div class="n aviso">Sem data de liberação, ela fica fora do cálculo. <button class="link" data-t="falta">Preencher em O que falta</button></div>`}
+      <div class="caixa" style="max-width:520px">${blocoMover(o)}</div>
+      <div class="painel" style="max-width:520px;position:static">${detalhes(c.id, r, "")}</div>
+      <div class="linha"><button class="btn p" data-t="prog">Ver na Programação</button><button class="btn" data-t="rotina">Ver na Rotina</button><button class="btn" data-t="nova">Criar outra OF</button></div>`;
+  }
+  // ---- Rotina
+  function selos(o) {
+    const concl = P.producaoConcluida({ CORTE: o.dias.CORTE, USINAGEM: o.dias.USINAGEM, MONTAGEM: o.dias.MONTAGEM, COLAGEM: o.dias.COLAGEM });
+    const est = o.dias.ESTOQUE > 0;
+    return (concl ? `<span class="selo sucesso">Produção concluída</span> ` : "") + (est ? `<span class="selo aviso">estoque: fora do cálculo</span>` : "");
+  }
+  function telaRotina() {
+    const l = fila();
+    return `<h1>Rotina diária</h1><p class="sec" style="margin:0">${l.length} OFs ativas, na ordem da fila. Os dias são <strong>o que ainda falta</strong>. Digite e tecle Enter para salvar e descer; as setas mudam a ordem.</p>
+    ${S.msg ? `<div class="n sucesso" role="status">${esc(S.msg)}</div>` : ""}
+    <div class="rolar"><table><thead><tr><th>Lugar</th><th>OF</th><th>Obra / descrição</th><th>Liberação</th>${["Corte", "Usinagem", "Montagem", "Colagem"].map((t) => `<th>${t}</th>`).join("")}<th>Situação</th></tr></thead><tbody>
+    ${l.map((o, i) => `<tr data-linha="${o.id}"><td style="white-space:nowrap"><button class="btn mini" data-a="sobe" data-id="${o.id}" aria-label="Subir ${esc(o.codigo)}" ${i === 0 ? "disabled" : ""}>↑</button> <button class="btn mini" data-a="desce" data-id="${o.id}" aria-label="Descer ${esc(o.codigo)}" ${i === l.length - 1 ? "disabled" : ""}>↓</button> ${i + 1}</td>
+      <td style="font-weight:500">${esc(o.codigo)}</td><td style="min-width:150px">${esc(o.obra)}<div class="peq sec">${esc(o.descricao)}</div></td><td style="white-space:nowrap">${o.lib ? fd(o.lib) : '<span class="av">sem data</span>'}</td>
+      ${P.ETAPAS_GANTT.map((et) => `<td><input class="dia" inputmode="decimal" data-rdia="${et}" data-id="${o.id}" aria-label="${P.etapaLabel(et)} de ${esc(o.codigo)}" placeholder="-" value="${o.dias[et] == null ? "" : P.formatDias(o.dias[et])}"></td>`).join("")}
+      <td style="min-width:150px">${selos(o)}</td></tr>`).join("")}
+    </tbody></table></div>
+    <div class="caixa linha entre" style="flex-direction:row"><span>Depois de atualizar os dias, veja como a fila fica nas máquinas.</span><button class="btn" data-t="prog">Abrir a Programação</button></div>`;
+  }
+  // ---- Programação
+  function grade(r, dias, recs) {
+    const cel = new Map(); r.programacao.forEach((l) => { const k = l.recursoId + "|" + l.data; cel.set(k, [...(cel.get(k) || []), l]); });
+    const sem = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+    return `<div class="rolar"><table class="g" style="min-width:${Math.max(320, recs.length * 110)}px"><thead><tr><th>Dia</th>${recs.map((x) => `<th>${x.nome}</th>`).join("")}</tr></thead><tbody>
+    ${dias.map((d) => `<tr><td style="white-space:nowrap;font-weight:500">${sem[new Date(d + "T00:00:00Z").getUTCDay()]} ${P.formatarDataCurta(d)}</td>${recs.map((x) => { const it = (cel.get(x.id + "|" + d) || []).sort((a, b) => a.ordemNoDia - b.ordemNoDia); const tot = it.reduce((n, l) => n + l.minutos, 0);
+      return `<td>${it.map((l) => `<span class="of ${S.sel === l.ofId ? "sel" : S.sel !== null ? "apaga" : ""}"><button class="of-b" data-of="${l.ofId}">${esc(l.codigo)}</button> <span class="sec">${P.textoDias(P.minutosEmDias(l.minutos, x.minutosDiaPadrao))}</span>${l.observacao ? ` <span class="selo info">${l.observacao}</span>` : ""}</span>`).join("")}<div class="ocu" title="Ocupação do dia"><i style="width:${Math.round(Math.min(P.ocupacaoDoDia(tot, x.minutosDiaPadrao), 1) * 100)}%"></i></div></td>`; }).join("")}</tr>`).join("")}</tbody></table></div>`;
+  }
+  function porOf(r, dias) {
+    const ofs = S.maquina === null ? r.ofs : r.ofs.filter((o) => o.etapas.some((e) => e.recursoIds.includes(S.maquina)));
+    return `<div class="linha peq sec">${P.ETAPAS_GANTT.map((e) => `<span><i class="leg ${e}"></i>${P.etapaLabel(e)}</span>`).join("")}</div><div class="rolar"><table class="g" style="min-width:760px"><thead><tr><th>OF</th>${dias.map((d) => `<th style="padding:8px 2px">${P.formatarDataCurta(d)}</th>`).join("")}<th>Carregamento</th></tr></thead><tbody>
+    ${ofs.map((o) => `<tr class="${S.sel === o.ofId ? "sel" : ""}"><td style="white-space:nowrap"><button class="of-b" data-of="${o.ofId}">${esc(o.codigo)}</button></td>${P.etapasPorDia(o, dias).map((et) => `<td class="gantt" style="padding:6px 2px">${et.map((e) => `<span class="${e}"></span>`).join("")}</td>`).join("")}<td style="white-space:nowrap;font-weight:500">${fd(o.carregamento)}</td></tr>`).join("")}</tbody></table></div>${ofs.length ? "" : '<p class="sec">Nenhuma OF programada nesta máquina.</p>'}`;
+  }
+  function telaProg() {
+    const r = calcular(), prov = S.jornada ? [] : NOMES, avisos = P.montarAvisos(r, prov), sit = P.situacaoProposta(r, 0);
+    if (!S.inicio) S.inicio = r.dataBase;
+    const dias = P.readDiasUteis(S.inicio, FERIADOS, DIAS), prox = P.readDiasUteis(dias[DIAS - 1], FERIADOS, 2)[1], ant = P.readDiasUteis(S.inicio, FERIADOS, DIAS, -1)[0];
+    const recs = (S.maquina === null ? RECURSOS : RECURSOS.filter((x) => x.id === S.maquina));
+    const atual = avisos.find((a) => a.id === S.aviso);
+    const destino = { "/pendencias#liberacao": "falta", "/pendencias#estoque": "falta", "/cadastros/recursos": "falta" };
+    return `<h1>Programação</h1>
+    <section class="caixa"><div class="linha entre"><div><strong style="font-weight:500">Nenhum plano gravado</strong><div class="sec">${esc(sit.texto)}</div><div class="sec">Calculado a partir de ${fd(r.dataBase)}: ${r.ofs.length} OFs programadas, ${r.naoProgramadas.length} fora do cálculo.</div></div><button class="btn p" data-a="aprovar">Revisar e aprovar</button></div></section>
+    <div class="linha"><span class="sec">Avisos:</span>${avisos.map((a) => `<button class="n ${a.tom}" style="padding:5px 10px" data-aviso="${a.id}" aria-expanded="${S.aviso === a.id}">${esc(a.rotulo)}</button>`).join("")}</div>
+    ${atual ? `<div class="n ${atual.tom}"><strong style="font-weight:500">${esc(atual.explicacao)}</strong>${atual.acao ? ` <button class="link" data-t="${destino[atual.acao.href] || "falta"}">Resolver em O que falta</button>` : ""}
+      <div class="linha" style="margin-top:6px;gap:4px 14px">${atual.itens.map((i) => i.ofId !== undefined ? `<button class="link" data-of="${i.ofId}">${esc(i.texto)}</button>` : `<span>${esc(i.texto)}</span>`).join("")}</div></div>` : ""}
+    <div class="linha" style="gap:8px 20px"><div class="linha" style="gap:4px"><button class="btn" aria-pressed="${S.visao === "maquina"}" data-visao="maquina">Por máquina</button><button class="btn" aria-pressed="${S.visao === "of"}" data-visao="of">Por OF</button></div>
+      <div class="linha" style="gap:4px"><button class="btn" aria-pressed="${S.maquina === null}" data-maq="">Todas</button>${RECURSOS.map((x) => `<button class="btn" aria-pressed="${S.maquina === x.id}" data-maq="${x.id}">${x.nome}</button>`).join("")}</div>
+      <div class="linha"><button class="btn" data-ini="${ant}" aria-label="3 semanas antes">‹</button><span style="white-space:nowrap">${fd(dias[0])} a ${fd(dias[DIAS - 1])}</span><button class="btn" data-ini="${prox}" aria-label="3 semanas depois">›</button></div></div>
+    <div class="grade"><div style="min-width:0">${S.visao === "maquina" ? grade(r, dias, recs) : porOf(r, dias)}</div>
+      ${S.sel !== null && porId(S.sel) ? `<aside class="painel">${detalhes(S.sel, r, '<button class="link" data-a="fechar">Fechar</button>')}${blocoMover(porId(S.sel))}</aside>` : `<aside class="painel vazio">Clique numa OF para ver as etapas, as máquinas e a data de carregamento.</aside>`}</div>
+    ${S.janela ? `<div class="fundo"><div class="janela" role="dialog" aria-modal="true" aria-labelledby="tJ"><h2 id="tJ">Aprovar e gravar a programação</h2><ul class="sec"><li>${r.ofs.length} OFs programadas e ${r.naoProgramadas.length} fora do cálculo.</li><li>Na ferramenta, aqui você escreve o motivo e confirma. A entrega prevista das OFs passa a ser o carregamento calculado.</li></ul><div class="n aviso">Nesta simulação nada é gravado.</div><div class="linha" style="justify-content:flex-end"><button class="btn" data-a="fecharJanela">Fechar</button></div></div></div>` : ""}`;
+  }
+  // ---- O que falta
+  function telaFalta() {
+    const l = fila(); const { itens, resolvidos } = P.montarPendencias({
+      hoje, recursos: NOMES.map((nome) => ({ nome, jornadaConfirmada: S.jornada })), feriados: S.calendario ? [...FERIADOS, { data: dia(30), escopo: "RECESSO" }] : FERIADOS,
+      ofs: l.map((o, i) => ({ id: o.id, codigo: o.codigo, prioridade: o.prioridade, posicao: i + 1, obra: o.obra, descricao: o.descricao, liberacao: o.lib, atualizadoEm: "", etapas: ETAPAS.filter((e) => o.dias[e] != null).map((e) => ({ etapa: e, origem: "MANUAL", duracaoMinutos: null, duracaoDiasManual: o.dias[e], maquinasPermitidas: (o.maq[e] || []).length })) })),
+    });
+    const acoes = { jornada: ["jornada", "Confirmar as jornadas"], maquinas: ["maquinas", "Marcar as máquinas"], estoque: ["estoque", "Tirar o estoque destas OFs"], calendario: ["calendario", "Cadastrar o recesso"] };
+    return `<h1>O que falta</h1><section class="caixa"><strong style="font-weight:500;font-size:16px">Pronto para a primeira aprovação: ${resolvidos} de ${itens.length} itens resolvidos</strong><div class="barra"><i style="width:${Math.round(resolvidos / itens.length * 100)}%"></i></div></section>
+    ${S.msg ? `<div class="n sucesso" role="status">${esc(S.msg)}</div>` : ""}
+    ${itens.map((it) => `<section style="display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:12px"><div class="linha"><h2>${esc(it.titulo)}</h2><span class="selo ${it.resolvido ? "sucesso" : "aviso"}">${it.resolvido ? "resolvido" : "pendente"}</span></div><div>${esc(it.resumo)}</div>
+      ${it.id === "liberacao" && !it.resolvido ? `<div class="rolar"><table><thead><tr><th>Lugar</th><th>OF</th><th>Obra</th><th>Data de liberação</th></tr></thead><tbody>${l.map((o, i) => o.lib ? "" : `<tr><td>${i + 1}</td><td style="font-weight:500">${esc(o.codigo)}</td><td>${esc(o.obra)}</td><td><form class="linha" data-lib="${o.id}"><input type="date" class="dia" style="width:150px" required aria-label="Liberação de ${esc(o.codigo)}"><button class="btn mini">Salvar</button></form></td></tr>`).join("")}</tbody></table></div>` : ""}
+      ${acoes[it.id] && !it.resolvido ? `<div><button class="btn" data-acao="${acoes[it.id][0]}">${acoes[it.id][1]}</button></div>` : ""}</section>`).join("")}`;
+  }
+  const TELAS = { nova: ["Nova OF", telaNova], rotina: ["Rotina diária", telaRotina], prog: ["Programação", telaProg], falta: ["O que falta", telaFalta], criada: [null, telaCriada] };
+  function render() {
+    const atual = S.tela === "criada" ? "nova" : S.tela;
+    document.getElementById("app").innerHTML = `<div class="faixa"><span><strong>Simulação com dados fictícios.</strong> Pode mexer à vontade: nada é gravado e, ao recarregar, tudo volta ao início.</span><button class="btn mini" data-a="recomecar">Recomeçar</button></div>
+      <header class="topo"><span class="marca">PCP Estrutural</span><nav aria-label="Telas">${["nova", "rotina", "prog", "falta"].map((t) => `<button class="btn" data-t="${t}" ${t === atual ? 'aria-current="page"' : ""}>${TELAS[t][0]}</button>`).join("")}</nav></header>
+      <main>${TELAS[S.tela][1]()}</main>`;
+  }
+  function ir(t) { S.tela = t; S.msg = null; S.erros = {}; S.mover = null; if (t === "nova" && S.criada) S.criada = null; render(); window.scrollTo(0, 0); }
+  function mover(id, novaPos) { P.reordenar(fila().map(item), id, novaPos).forEach((m) => { porId(m.id).prioridade = m.depois; }); }
+
+  document.addEventListener("click", (ev) => {
+    const b = ev.target.closest("button"); if (!b) return; const d = b.dataset;
+    if (d.t) return ir(d.t);
+    if (d.of) { S.sel = S.sel === +d.of ? null : +d.of; return render(); }
+    if (d.aviso) { S.aviso = S.aviso === d.aviso ? null : d.aviso; return render(); }
+    if (d.visao) { S.visao = d.visao; return render(); }
+    if (d.maq !== undefined) { S.maquina = d.maq === "" ? null : +d.maq; return render(); }
+    if (d.ini) { S.inicio = d.ini; return render(); }
+    if (d.acao) {
+      if (d.acao === "jornada") S.jornada = true;
+      if (d.acao === "calendario") S.calendario = true;
+      if (d.acao === "estoque") S.ofs.forEach((o) => { if (o.dias.ESTOQUE > 0) o.dias.ESTOQUE = null; });
+      if (d.acao === "maquinas") S.ofs.forEach((o) => ["CORTE", "USINAGEM", "MONTAGEM", "COLAGEM"].forEach((e) => { if (o.dias[e] > 0 && !(o.maq[e] || []).length) o.maq[e] = [...MAQ[e]]; }));
+      S.msg = null; return render();
+    }
+    const id = +d.id, a = d.a;
+    if (a === "recomecar") return recomecar();
+    if (a === "exemplo") { S.form = { ...formVazio(), obra: OBRAS[1], descricao: "Fachada de exemplo", lugar: "escolher", depoisDe: String(fila()[1].id), lib: hoje, cliente: dia(45), dias: { CORTE: "2", USINAGEM: "1", MONTAGEM: "3", COLAGEM: "1" }, maq: { CORTE: [1] } }; S.erros = {}; return render(); }
+    if (a === "aprovar") { S.janela = true; return render(); }
+    if (a === "fecharJanela") { S.janela = false; return render(); }
+    if (a === "fechar") { S.sel = null; return render(); }
+    if (a === "abrirMover") { S.mover = id; return render(); }
+    if (a === "fecharMover") { S.mover = null; return render(); }
+    if (a === "mover") {
+      const v = document.getElementById("moverPara").value; if (!v) return;
+      const pos = P.posicaoDepoisDe(fila().filter((o) => o.id !== id).map((o) => o.id), v === "inicio" ? null : +v);
+      mover(id, pos); S.mover = null; if (S.criada && S.criada.id === id) { S.criada.posicao = pos; S.criada.desceram = fila().length - pos; } return render();
+    }
+    if (a === "sobe" || a === "desce") { const l = fila(), i = l.findIndex((o) => o.id === id); mover(id, i + 1 + (a === "sobe" ? -1 : 1)); S.msg = null; render(); const novo = document.querySelector(`[data-a="${a}"][data-id="${id}"]`); if (novo && !novo.disabled) novo.focus(); }
+  });
+  document.addEventListener("input", (ev) => {
+    const t = ev.target, f = S.form;
+    if (t.dataset.fdia) f.dias[t.dataset.fdia] = t.value;
+    else if (["descricao", "lib", "cliente"].includes(t.id)) f[t.id] = t.value;
+  });
+  document.addEventListener("change", (ev) => {
+    const t = ev.target, f = S.form;
+    if (t.id === "obra") f.obra = t.value;
+    else if (t.name === "lugar") { f.lugar = t.value; document.getElementById("lugarBloco").innerHTML = "<legend>Lugar na fila</legend>" + blocoLugar(); }
+    else if (t.id === "depoisDe") { f.depoisDe = t.value; document.getElementById("previa").textContent = previa(); }
+    else if (t.id === "comprometida" || t.id === "prazoCurto") f[t.id] = t.checked;
+    else if (t.dataset.fmaq) { const e = t.dataset.fmaq, v = +t.value; f.maq[e] = t.checked ? [...(f.maq[e] || []), v] : (f.maq[e] || []).filter((m) => m !== v); }
+    else if (t.dataset.rdia) gravarDia(t);
+  });
+  function gravarDia(t, descer) {
+    const o = porId(+t.dataset.id), e = t.dataset.rdia, v = parseDias(t.value);
+    const volta = o.dias[e] == null ? "" : P.formatDias(o.dias[e]);
+    if (v === undefined || (v === null && o.dias[e] != null)) { t.value = volta; t.style.borderColor = "#b91c1c"; S.msg = null; return; }
+    if (v !== o.dias[e]) { o.dias[e] = v; S.msg = `${o.codigo}: ${P.etapaLabel(e)} atualizado.`; }
+    const lista = fila(), i = lista.findIndex((x) => x.id === o.id), prox = descer && lista[i + 1];
+    render();
+    const alvo = document.querySelector(`[data-rdia="${e}"][data-id="${(prox || o).id}"]`); if (alvo) { alvo.focus(); alvo.select(); }
+  }
+  document.addEventListener("keydown", (ev) => { const t = ev.target; if (ev.key === "Enter" && t.dataset && t.dataset.rdia) { ev.preventDefault(); gravarDia(t, true); } });
+  document.addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    if (ev.target.id === "fNova") return salvarNova();
+    const id = ev.target.dataset.lib; if (!id) return;
+    const v = ev.target.querySelector("input").value; if (!v) return;
+    const o = porId(+id); o.lib = v; S.msg = `${o.codigo}: liberação ${fd(v)} gravada na simulação. A OF entrou no cálculo.`; render();
+  });
+  recomecar();
+})();
+</script>
+</body></html>
